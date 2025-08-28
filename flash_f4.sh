@@ -26,10 +26,10 @@ fi
 
 # Start OpenOCD in the background
 echo "Starting OpenOCD..."
-sudo openocd -f "$OPENOCD_CFG" &
+openocd -f "$OPENOCD_CFG" &
 OPENOCD_PID=$!
 
-# Wait briefly for OpenOCD to initialize
+# Waiting 2 briefly for OpenOCD to initialize
 sleep 2
 
 # Check if OpenOCD is running
@@ -37,6 +37,9 @@ if ! ps -p $OPENOCD_PID > /dev/null; then
     echo "Error: OpenOCD failed to start. Check the OpenOCD output or config."
     exit 1
 fi
+
+#target extended-remote localhost:3333
+#monitor init
 
 # Create a temporary GDB script
 GDB_SCRIPT=$(mktemp)
@@ -56,15 +59,17 @@ arm-none-eabi-gdb -batch -x "$GDB_SCRIPT" "$ELF_FILE"
 GDB_STATUS=$?
 if [ $GDB_STATUS -ne 0 ]; then
     echo "Error: GDB flashing failed."
-    sudo kill $OPENOCD_PID 2>/dev/null
+    kill $OPENOCD_PID 2>/dev/null
     rm "$GDB_SCRIPT"
     exit $GDB_STATUS
 fi
 
 # Clean up
 echo "Flashing complete. Stopping OpenOCD..."
-sudo kill $OPENOCD_PID 2>/dev/null
-rm "$GDB_SCRIPT"
-
-echo "Done!"
+kill $OPENOCD_PID 2>/dev/null
+rm "$GDB_SCRIPT"echo "Done!"
 exit 0
+
+
+
+
